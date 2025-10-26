@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Online Grocery Delivery System - Demo</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 40px; background: #f8f9fa; color: #333; }
+  h1, h2 { color: #2c3e50; }
+  .section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 25px; }
+  button { background: #3498db; color: white; padding: 8px 14px; border: none; border-radius: 4px; cursor: pointer; }
+  button:hover { background: #2980b9; }
+  input, select { padding: 6px; margin: 4px 0; width: 100%; }
+  .nav { background: #2c3e50; color: white; padding: 10px; border-radius: 6px; margin-bottom: 20px; }
+  .nav button { background: #1abc9c; }
+  .hidden { display: none; }
+  .product { padding: 10px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 8px; }
+  .cart-item { padding: 6px; border-bottom: 1px dashed #ccc; }
+  .msg { margin-top: 10px; color: green; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <button onclick="showPage('login')">Login</button>
+  <button onclick="showPage('signup')">Sign Up</button>
+  <button onclick="showPage('shop')">Shop</button>
+  <button onclick="showPage('cart')">Cart</button>
+  <button onclick="showPage('checkout')">Checkout</button>
+  <button onclick="showPage('track')">Track Order</button>
+</div>
+
+<div id="login" class="section">
+  <h2>Login (UC1)</h2>
+  <p>Email:</p><input id="loginEmail" type="text" placeholder="customer@example.com">
+  <p>Password:</p><input id="loginPass" type="password" placeholder="1234">
+  <button onclick="login()">Login</button>
+  <div id="loginMsg" class="msg"></div>
+</div>
+
+<div id="signup" class="section hidden">
+  <h2>Sign Up (UC1)</h2>
+  <p>Email:</p><input id="signupEmail" type="text" placeholder="your@email.com">
+  <p>Password:</p><input id="signupPass" type="password" placeholder="••••">
+  <button onclick="signup()">Create Account</button>
+  <div id="signupMsg" class="msg"></div>
+</div>
+
+<div id="shop" class="section hidden">
+  <h2>Browse Products (UC2)</h2>
+  <div id="products"></div>
+  <button onclick="showPage('cart')">View Cart</button>
+</div>
+
+<div id="cart" class="section hidden">
+  <h2>Your Cart (UC3)</h2>
+  <div id="cartItems"></div>
+  <p><b>Total:</b> $<span id="total">0.00</span></p>
+  <button onclick="showPage('checkout')">Go to Checkout</button>
+</div>
+
+<div id="checkout" class="section hidden">
+  <h2>Checkout & Pay (UC4)</h2>
+  <p>Delivery Address:</p><input id="address" type="text" placeholder="123 Main St">
+  <p>Card Number:</p><input id="card" type="text" placeholder="1111 2222 3333 4444">
+  <button onclick="checkout()">Confirm Payment</button>
+  <div id="checkoutMsg" class="msg"></div>
+</div>
+
+<div id="track" class="section hidden">
+  <h2>Track Order (UC5)</h2>
+  <p>Enter Order ID:</p><input id="orderId" type="number" placeholder="e.g., 1">
+  <button onclick="trackOrder()">Track</button>
+  <div id="trackMsg" class="msg"></div>
+</div>
+
+<script>
+let loggedIn = false;
+let cart = [];
+let orders = {};
+let orderCounter = 0;
+let deliveryStages = ["Confirmed", "Packed", "Out for Delivery", "Delivered"];
+let products = [
+  {id:1, name:"Apples", price:2.99, stock:10},
+  {id:2, name:"Bread", price:1.99, stock:15},
+  {id:3, name:"Milk", price:3.49, stock:8}
+];
+
+function showPage(id){
+  document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+  if(id==='shop') renderProducts();
+  if(id==='cart') renderCart();
+}
+
+function signup(){
+  document.getElementById('signupMsg').innerText = "Account created! You can now log in.";
+}
+
+function login(){
+  let email = document.getElementById('loginEmail').value;
+  let pass = document.getElementById('loginPass').value;
+  if(email && pass){
+    loggedIn = true;
+    document.getElementById('loginMsg').innerText = "Login successful!";
+    showPage('shop');
+  } else {
+    document.getElementById('loginMsg').innerText = "Invalid credentials.";
+  }
+}
+
+function renderProducts(){
+  let container = document.getElementById('products');
+  container.innerHTML = '';
+  products.forEach(p=>{
+    let div = document.createElement('div');
+    div.className='product';
+    div.innerHTML = `<b>${p.name}</b><br>Price: $${p.price} | Stock: ${p.stock}<br>
+      <button onclick="addToCart(${p.id})">Add to Cart</button>`;
+    container.appendChild(div);
+  });
+}
+
+function addToCart(pid){
+  let product = products.find(p=>p.id===pid);
+  if(product && product.stock>0){
+    cart.push(product);
+    product.stock--;
+    alert(product.name + " added to cart!");
+  } else {
+    alert("Out of stock!");
+  }
+}
+
+function renderCart(){
+  let container = document.getElementById('cartItems');
+  container.innerHTML='';
+  let total=0;
+  cart.forEach(c=>{
+    container.innerHTML += `<div class='cart-item'>${c.name} - $${c.price}</div>`;
+    total+=c.price;
+  });
+  document.getElementById('total').innerText = total.toFixed(2);
+}
+
+function checkout(){
+  if(cart.length===0){
+    document.getElementById('checkoutMsg').innerText="Cart is empty.";
+    return;
+  }
+  orderCounter++;
+  orders[orderCounter]={items:cart, stage:0};
+  cart=[];
+  document.getElementById('checkoutMsg').innerText="Payment successful! Your Order ID: "+orderCounter;
+}
+
+function trackOrder(){
+  let id=parseInt(document.getElementById('orderId').value);
+  if(!orders[id]){
+    document.getElementById('trackMsg').innerText="Order not found.";
+    return;
+  }
+  let o=orders[id];
+  if(o.stage<deliveryStages.length-1) o.stage++;
+  document.getElementById('trackMsg').innerText="Current Status: "+deliveryStages[o.stage];
+}
+</script>
+
+</body>
+</html>
