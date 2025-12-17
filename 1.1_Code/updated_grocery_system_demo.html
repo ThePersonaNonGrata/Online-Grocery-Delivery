@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Online Grocery Delivery System - HTML Demo</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 40px; background: #f8f9fa; color: #333; }
+  h1, h2, h3 { color: #2c3e50; margin-top: 0; }
+  .nav { background: #2c3e50; color: white; padding: 10px; border-radius: 6px; margin-bottom: 20px; }
+  .nav button { background: #1abc9c; border: none; padding: 8px 12px; color: white; border-radius: 4px; cursor: pointer; margin-right: 6px; }
+  .nav button:hover { background: #16a085; }
+  .section { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 25px; }
+  .hidden { display: none; }
+  .row { display: flex; gap: 20px; flex-wrap: wrap; }
+  .col { flex: 1; min-width: 280px; }
+  .product { padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; }
+  .btn { background: #3498db; color: white; padding: 8px 14px; border: none; border-radius: 6px; cursor: pointer; }
+  .btn:hover { background: #2980b9; }
+  .btn-danger { background: #c0392b; }
+  .btn-danger:hover { background: #a93226; }
+  .btn-secondary { background: #7f8c8d; }
+  .btn-secondary:hover { background: #707b7c; }
+  input, select { padding: 10px; margin: 6px 0; width: 100%; border: 1px solid #ccc; border-radius: 6px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
+  th { background: #ecf0f1; }
+  .msg { margin-top: 12px; padding: 10px; border-radius: 8px; background: #eafaf1; border: 1px solid #d5f5e3; color: #1e8449; font-weight: bold; }
+  .err { margin-top: 12px; padding: 10px; border-radius: 8px; background: #fdecea; border: 1px solid #f5c6cb; color: #922b21; font-weight: bold; }
+  .qtybox { display: flex; align-items: center; gap: 8px; }
+  .qtybox input { width: 90px; margin: 0; }
+  .pill { display: inline-block; padding: 4px 10px; border-radius: 999px; background: #ecf0f1; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <button onclick="showPage('login')">Login</button>
+  <button onclick="showPage('signup')">Sign Up</button>
+  <button onclick="showPage('shop')">Shop</button>
+  <button onclick="showPage('cart')">Cart</button>
+  <button onclick="showPage('checkout')">Checkout</button>
+  <button onclick="showPage('track')">Track Order</button>
+</div>
+
+<div id="login" class="section">
+  <h2>Login (UC1)</h2>
+  <p>Email:</p><input id="loginEmail" type="email" placeholder="customer@example.com" />
+  <p>Password:</p><input id="loginPass" type="password" placeholder="1234" />
+  <button class="btn" onclick="login()">Login</button>
+  <div id="loginMsg"></div>
+</div>
+
+<div id="signup" class="section hidden">
+  <h2>Sign Up (UC1)</h2>
+  <p>Email:</p><input id="signupEmail" type="email" placeholder="your@email.com" />
+  <p>Password:</p><input id="signupPass" type="password" placeholder="••••" />
+  <button class="btn" onclick="signup()">Create Account</button>
+  <div id="signupMsg"></div>
+</div>
+
+<div id="shop" class="section hidden">
+  <h2>Browse Products (UC2)</h2>
+  <div class="row">
+    <div class="col">
+      <h3>Catalog</h3>
+      <div id="products"></div>
+    </div>
+    <div class="col">
+      <h3>Quick Cart Preview</h3>
+      <div id="cartPreview"></div>
+      <button class="btn" onclick="showPage('cart')">Open Cart</button>
+    </div>
+  </div>
+</div>
+
+<div id="cart" class="section hidden">
+  <h2>Your Cart (UC3)</h2>
+  <div id="cartMsg"></div>
+  <div id="cartTable"></div>
+  <div style="margin-top:12px;">
+    <button class="btn" onclick="showPage('checkout')">Go to Checkout</button>
+    <button class="btn btn-secondary" onclick="showPage('shop')">Continue Shopping</button>
+  </div>
+</div>
+
+<div id="checkout" class="section hidden">
+  <h2>Checkout & Pay (UC4)</h2>
+  <div id="checkoutMsg"></div>
+
+  <div class="row">
+    <div class="col">
+      <h3>Customer Information</h3>
+      <label>Full Name</label>
+      <input id="fullName" type="text" placeholder="John Smith" />
+      <label>Email</label>
+      <input id="custEmail" type="email" placeholder="john@email.com" />
+      <label>Phone</label>
+      <input id="phone" type="tel" placeholder="555-555-5555" />
+    </div>
+
+    <div class="col">
+      <h3>Delivery & Payment</h3>
+      <label>Delivery Address</label>
+      <input id="address" type="text" placeholder="123 Main St, City, State" />
+      <label>Card Number</label>
+      <input id="card" type="text" placeholder="1111 2222 3333 4444" />
+      <button class="btn" onclick="checkout()">Confirm Payment</button>
+      <button class="btn btn-secondary" onclick="showPage('cart')">Back to Cart</button>
+    </div>
+  </div>
+
+  <div class="section" style="margin-top:20px;">
+    <h3>Order Summary</h3>
+    <div id="orderSummary"></div>
+  </div>
+</div>
+
+<div id="track" class="section hidden">
+  <h2>Track Order (UC5)</h2>
+  <p>Enter Order ID:</p>
+  <input id="orderId" type="number" placeholder="e.g., 1" />
+  <button class="btn" onclick="trackOrder()">Track</button>
+  <div id="trackMsg"></div>
+</div>
+
+<script>
+/* -------------------------
+   Static demo state
+------------------------- */
+let loggedIn = false;
+let users = { "customer@example.com": { password: "1234" } };
+
+let products = [
+  {id: 1, name: "Apples", price: 2.99, stock: 10},
+  {id: 2, name: "Bread",  price: 1.99, stock: 15},
+  {id: 3, name: "Milk",   price: 3.49, stock:  8}
+];
+
+// cart is map: {productId: qty}
+let cart = {};
+
+let orders = {};     // orders[orderId] = { customerInfo, items[], total, stage }
+let orderCounter = 0;
+let deliveryStages = ["Confirmed", "Packed", "Out for Delivery", "Delivered"];
+
+/* -------------------------
+   Page navigation
+------------------------- */
+function showPage(id) {
+  document.querySelectorAll(".section").forEach(s => s.classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+
+  if (id === "shop") { renderProducts(); renderCartPreview(); }
+  if (id === "cart") { renderCart(); }
+  if (id === "checkout") { renderCheckoutSummary(); }
+}
+
+/* -------------------------
+   Auth (static)
+------------------------- */
+function setMessage(elId, text, kind="msg") {
+  const el = document.getElementById(elId);
+  el.innerHTML = `<div class="${kind}">${text}</div>`;
+}
+
+function signup() {
+  const email = document.getElementById("signupEmail").value.trim();
+  const pass  = document.getElementById("signupPass").value.trim();
+  if (!email || !pass) return setMessage("signupMsg", "Please enter email and password.", "err");
+  if (users[email]) return setMessage("signupMsg", "User already exists.", "err");
+  users[email] = { password: pass };
+  setMessage("signupMsg", "Account created! You can now log in.", "msg");
+}
+
+function login() {
+  const email = document.getElementById("loginEmail").value.trim();
+  const pass  = document.getElementById("loginPass").value.trim();
+  if (users[email] && users[email].password === pass) {
+    loggedIn = true;
+    setMessage("loginMsg", "Login successful!", "msg");
+    showPage("shop");
+  } else {
+    setMessage("loginMsg", "Invalid credentials.", "err");
+  }
+}
+
+/* -------------------------
+   Products + Cart
+------------------------- */
+function money(n){ return Number(n).toFixed(2); }
+
+function cartTotal() {
+  let total = 0;
+  Object.keys(cart).forEach(pid => {
+    const p = products.find(x => x.id === parseInt(pid));
+    if (p) total += p.price * cart[pid];
+  });
+  return total;
+}
+
+function renderProducts() {
+  const container = document.getElementById("products");
+  container.innerHTML = "";
+  products.forEach(p => {
+    const div = document.createElement("div");
+    div.className = "product";
+    div.innerHTML = `
+      <b>${p.name}</b> <span class="pill">Stock: ${p.stock}</span><br>
+      Price: $${money(p.price)}<br><br>
+      <button class="btn" ${p.stock<=0 ? "disabled" : ""} onclick="addToCart(${p.id})">
+        ${p.stock<=0 ? "Out of Stock" : "Add to Cart"}
+      </button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function addToCart(pid) {
+  if (!loggedIn) return alert("Please log in first.");
+  const p = products.find(x => x.id === pid);
+  if (!p || p.stock <= 0) return alert("Out of stock.");
+  cart[pid] = (cart[pid] || 0) + 1;
+  p.stock -= 1;
+  renderProducts();
+  renderCartPreview();
+}
+
+function removeItem(pid) {
+  const qty = cart[pid] || 0;
+  if (qty <= 0) return;
+  // restore stock
+  const p = products.find(x => x.id === parseInt(pid));
+  if (p) p.stock += qty;
+  delete cart[pid];
+  renderCart();
+  renderCartPreview();
+}
+
+function setQty(pid, newQty) {
+  newQty = parseInt(newQty);
+  if (isNaN(newQty) || newQty < 0) newQty = 0;
+
+  const currentQty = cart[pid] || 0;
+  const p = products.find(x => x.id === parseInt(pid));
+  if (!p) return;
+
+  const diff = newQty - currentQty;
+
+  if (diff > 0) {
+    // need more stock
+    if (p.stock >= diff) {
+      p.stock -= diff;
+      cart[pid] = newQty;
+    } else {
+      // cap at available
+      cart[pid] = currentQty + p.stock;
+      p.stock = 0;
+      setMessage("cartMsg", "Some quantities were reduced due to limited stock.", "err");
+    }
+  } else if (diff < 0) {
+    // restore stock
+    p.stock += Math.abs(diff);
+    if (newQty === 0) delete cart[pid];
+    else cart[pid] = newQty;
+  }
+
+  renderCart();
+  renderCartPreview();
+}
+
+function renderCartPreview() {
+  const container = document.getElementById("cartPreview");
+  const keys = Object.keys(cart);
+  if (keys.length === 0) {
+    container.innerHTML = "<p>Your cart is empty.</p>";
+    return;
+  }
+  let html = "";
+  keys.forEach(pid => {
+    const p = products.find(x => x.id === parseInt(pid));
+    if (!p) return;
+    html += `<div class="product">${p.name} x${cart[pid]} — $${money(p.price * cart[pid])}</div>`;
+  });
+  html += `<p><b>Total:</b> $${money(cartTotal())}</p>`;
+  container.innerHTML = html;
+}
+
+function renderCart() {
+  const container = document.getElementById("cartTable");
+  document.getElementById("cartMsg").innerHTML = "";
+  const keys = Object.keys(cart);
+
+  if (keys.length === 0) {
+    container.innerHTML = "<p>Your cart is empty.</p>";
+    return;
+  }
+
+  let rows = "";
+  keys.forEach(pid => {
+    const p = products.find(x => x.id === parseInt(pid));
+    if (!p) return;
+    const qty = cart[pid];
+    rows += `
+      <tr>
+        <td>${p.name}</td>
+        <td>$${money(p.price)}</td>
+        <td>
+          <div class="qtybox">
+            <button class="btn btn-secondary" onclick="setQty('${pid}', ${qty-1})">-</button>
+            <input type="number" min="0" value="${qty}" oninput="setQty('${pid}', this.value)" />
+            <button class="btn btn-secondary" onclick="setQty('${pid}', ${qty+1})">+</button>
+          </div>
+        </td>
+        <td>$${money(p.price * qty)}</td>
+        <td><button class="btn btn-danger" onclick="removeItem('${pid}')">Remove</button></td>
+      </tr>
+    `;
+  });
+
+  container.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th style="width:35%;">Item</th>
+          <th style="width:15%;">Price</th>
+          <th style="width:20%;">Quantity</th>
+          <th style="width:15%;">Subtotal</th>
+          <th style="width:15%;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <p style="margin-top:12px;"><b>Total:</b> $${money(cartTotal())}</p>
+  `;
+}
+
+/* -------------------------
+   Checkout
+------------------------- */
+function renderCheckoutSummary() {
+  const summary = document.getElementById("orderSummary");
+  const keys = Object.keys(cart);
+  document.getElementById("checkoutMsg").innerHTML = "";
+
+  if (keys.length === 0) {
+    summary.innerHTML = "<p>Your cart is empty. Go back to Shop.</p>";
+    return;
+  }
+
+  let html = "";
+  keys.forEach(pid => {
+    const p = products.find(x => x.id === parseInt(pid));
+    if (!p) return;
+    html += `${p.name} (x${cart[pid]}) — $${money(p.price * cart[pid])}<br>`;
+  });
+  html += `<br><b>Total:</b> $${money(cartTotal())}`;
+  summary.innerHTML = html;
+}
+
+function checkout() {
+  const keys = Object.keys(cart);
+  if (keys.length === 0) return setMessage("checkoutMsg", "Cart is empty.", "err");
+
+  // Customer info fields
+  const fullName = document.getElementById("fullName").value.trim();
+  const email    = document.getElementById("custEmail").value.trim();
+  const phone    = document.getElementById("phone").value.trim();
+  const address  = document.getElementById("address").value.trim();
+  const card     = document.getElementById("card").value.trim();
+
+  if (!fullName || !email || !phone || !address || !card) {
+    return setMessage("checkoutMsg", "Please fill in all customer, delivery, and payment fields.", "err");
+  }
+
+  // Create order
+  orderCounter++;
+  let items = [];
+  keys.forEach(pid => {
+    const p = products.find(x => x.id === parseInt(pid));
+    if (!p) return;
+    items.push({ id: p.id, name: p.name, price: p.price, qty: cart[pid] });
+  });
+
+  orders[orderCounter] = {
+    customerInfo: { fullName, email, phone, address },
+    items,
+    total: cartTotal(),
+    stage: 0
+  };
+
+  // Clear cart after payment success
+  cart = {};
+  setMessage("checkoutMsg", `Payment Successful! Your Order ID: ${orderCounter}`, "msg");
+  renderCartPreview();
+  renderCheckoutSummary();
+}
+
+/* -------------------------
+   Track Order
+------------------------- */
+function trackOrder() {
+  const id = parseInt(document.getElementById("orderId").value);
+  if (!orders[id]) return setMessage("trackMsg", "Order not found.", "err");
+
+  const o = orders[id];
+  if (o.stage < deliveryStages.length - 1) o.stage++;
+  const status = deliveryStages[o.stage];
+
+  setMessage("trackMsg", `
+    Current Status: ${status}<br><br>
+    Customer: ${o.customerInfo.fullName} (${o.customerInfo.email})<br>
+    Total: $${money(o.total)}
+  `, "msg");
+}
+
+// Start at login page
+showPage("login");
+</script>
+
+</body>
+</html>
